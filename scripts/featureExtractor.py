@@ -38,13 +38,17 @@ def main(params):
 
         for featureFile in filesFile:
 
+            featureFile = featureFile.replace("\n", "")
+
             print(f"[Feature Extractor] Processing file {featureFile}...")
 
             # y, sfreq = sf.read('{}'.format(featureFile[:-1]))
             y, sfreq = sf.read('{}'.format(featureFile)) 
             mf = mfsc(y, sfreq)
-            with open('{}.pickle'.format(featureFile[:-5]), 'wb') as handle:
+            with open(f'{featureFile[:-4]}.pickle', 'wb') as handle:
                 pickle.dump(mf,handle)
+
+            print(f"[Feature Extractor] File processed. Dumped pickle in {featureFile[:-4]}.pickle")
 
 if __name__=='__main__':
 
@@ -52,9 +56,6 @@ if __name__=='__main__':
     
     parser = argparse.ArgumentParser(description='Extract Features. Looks for .wav files and extract Features')
     parser.add_argument('--audioFilesList', '-i', type=str, required=True, default='', help='Wav Files List.')
-    params=parser.parse_args()
+    params = parser.parse_args()
 
-    main(params) 
-
-
-
+    main(params)
