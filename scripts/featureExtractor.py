@@ -35,19 +35,25 @@ def extractFeatures(audioPath):
 def main(params):
 
     with open(params.audioFilesList,'r') as  filesFile:
+
         for featureFile in filesFile:
-            print(featureFile[:-1])
-            y, sfreq = sf.read('{}'.format(featureFile[:-1])) 
+
+            print(f"[Feature Extractor] Processing file {featureFile}...")
+
+            # y, sfreq = sf.read('{}'.format(featureFile[:-1]))
+            y, sfreq = sf.read('{}'.format(featureFile)) 
             mf = mfsc(y, sfreq)
             with open('{}.pickle'.format(featureFile[:-5]), 'wb') as handle:
                 pickle.dump(mf,handle)
 
 if __name__=='__main__':
 
-
+    print(f"[Feature Extractor] Starting audio processing...")
+    
     parser = argparse.ArgumentParser(description='Extract Features. Looks for .wav files and extract Features')
     parser.add_argument('--audioFilesList', '-i', type=str, required=True, default='', help='Wav Files List.')
     params=parser.parse_args()
+
     main(params) 
 
 
