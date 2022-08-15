@@ -1,12 +1,12 @@
 import os
 
 # were to look for files to make the feature extraction
-load_path = "/home/usuaris/veu/federico.costa/datasets/voxceleb1/test"
+load_path = "/home/usuaris/veu/federico.costa/datasets/voxceleb2/dev"
 
 # output file path
 dump_path = "/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/files_directories/feature_extractor/feature_extractor_paths.lst"
 
-valid_formats = [".wav"]
+valid_formats = [".wav", ".m4a"]
 
 number_of_files = 0
 
@@ -28,6 +28,4 @@ with open(dump_path, 'w') as f:
 
     print("-"*50)
     print(f"{number_of_files} files paths dumped in {dump_path}")
-
-    
 

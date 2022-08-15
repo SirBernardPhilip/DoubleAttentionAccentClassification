@@ -5,6 +5,11 @@ import pickle
 import librosa
 import argparse
 
+# In this particular case we ignore warnings of loading a .m4a audio
+# Not a good practice
+import warnings
+warnings.filterwarnings("ignore")
+
 def mfsc(y, sfr, window_size=0.025, window_stride=0.010, window='hamming', n_mels=80, preemCoef=0.97):
     win_length = int(sfr * window_size)
     hop_length = int(sfr * window_stride)
@@ -34,21 +39,42 @@ def extractFeatures(audioPath):
 
 def main(params):
 
-    with open(params.audioFilesList,'r') as  filesFile:
+    # Doing this to be able to print progress of processing files
+    with open(params.audioFilesList,'r') as filesFile:
+        total_lines = sum(1 for line in list(filesFile))
+        filesFile.close()
+    
+    with open(params.audioFilesList,'r') as filesFile:
+        
+        print(f"[Feature Extractor] {total_lines} audios ready for feature extraction.")
 
+        line_num = 0
         for featureFile in filesFile:
 
             featureFile = featureFile.replace("\n", "")
 
-            print(f"[Feature Extractor] Processing file {featureFile}...")
+            # print(f"[Feature Extractor] Processing file {featureFile}...")
 
             # y, sfreq = sf.read('{}'.format(featureFile[:-1]))
-            y, sfreq = sf.read('{}'.format(featureFile)) 
+            # y, sfreq = sf.read('{}'.format(featureFile))
+            y, sfreq = librosa.load(
+                f'{featureFile}',
+                sr = 16000,
+                mono = True,
+                ) 
+
             mf = mfsc(y, sfreq)
+
             with open(f'{featureFile[:-4]}.pickle', 'wb') as handle:
                 pickle.dump(mf,handle)
 
-            print(f"[Feature Extractor] File processed. Dumped pickle in {featureFile[:-4]}.pickle")
+            # print(f"[Feature Extractor] File processed. Dumped pickle in {featureFile[:-4]}.pickle")
+            
+            progress_pctg = line_num / total_lines * 100
+            print(f"[Feature Extractor] {progress_pctg:.2f}% audios processed...")
+            line_num = line_num + 1
+
+        print(f"[Feature Extractor] All audios processed!")
 
 if __name__=='__main__':
 
