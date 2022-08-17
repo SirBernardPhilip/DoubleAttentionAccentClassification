@@ -37,6 +37,7 @@ def chkptsave(opt,model,optimizer,epoch,step):
             'epoch': epoch,
             'step':step}
 
+    print(f"Saving checkpoint in: {'{}/{}_{}.chkpt'.format(opt.out_dir, opt.model_name,step)}")
     torch.save(checkpoint,'{}/{}_{}.chkpt'.format(opt.out_dir, opt.model_name,step))
 
 def Accuracy(pred, labels):
