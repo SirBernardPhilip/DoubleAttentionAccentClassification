@@ -5,12 +5,16 @@ import random
 
 # Setted variables
 dev_dataset_path = "/home/usuaris/veu/federico.costa/datasets/voxceleb2/dev"
-train_speakers_pctg = 0.8
+train_speakers_pctg = 0.6
 labels_dump_path = "/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/files_directories/labels/labels.ndx"
 impostors_dump_path = "/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/files_directories/labels/impostors.ndx"
 clients_dump_path = "/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/files_directories/labels/clients.ndx"
 clients_lines_max = None
 impostors_lines_max = None
+# random_split: Select randomly or not the speakers in the train-valid split
+# It was done because maybe the original code needs speaker numbers (0 to N-1) in order in labels.ndx
+# If we select them randomly, we could get speaker 4, then speaker 9 and so on, not consecutively 
+random_split = False 
 
 def generate_speakers_dict(load_path):
     
@@ -58,7 +62,7 @@ def generate_speakers_dict(load_path):
     return speakers_dict
 
 
-def train_valid_split_dict(speakers_dict, train_speakers_pctg, labels_dump_path, impostors_dump_path):
+def train_valid_split_dict(speakers_dict, train_speakers_pctg, random_split = True):
     
     # We are going to randomly split speaker_id's
     
@@ -66,10 +70,14 @@ def train_valid_split_dict(speakers_dict, train_speakers_pctg, labels_dump_path,
     
     train_speakers_final_index = int(num_speakers * train_speakers_pctg)
     random_speaker_nums = list(range(num_speakers))
-    random.shuffle(random_speaker_nums)
+    if random_split:
+        random.shuffle(random_speaker_nums)
     
     for i, speaker in enumerate(speakers_dict.keys()):
-        speakers_dict[speaker]["random_speaker_num"] = random_speaker_nums[i]
+        if random_split:
+            speakers_dict[speaker]["random_speaker_num"] = random_speaker_nums[i]
+        else:
+            speakers_dict[speaker]["random_speaker_num"] = speakers_dict[speaker]["speaker_num"]
         
     train_speakers_dict = speakers_dict.copy()
     valid_speakers_dict = speakers_dict.copy()
@@ -78,7 +86,7 @@ def train_valid_split_dict(speakers_dict, train_speakers_pctg, labels_dump_path,
 
         random_speaker_num = speakers_dict[speaker]["random_speaker_num"]
 
-        if random_speaker_num > train_speakers_final_index:
+        if random_speaker_num >= train_speakers_final_index:
             del train_speakers_dict[speaker]
         else:
             del valid_speakers_dict[speaker]
@@ -91,7 +99,6 @@ def train_valid_split_dict(speakers_dict, train_speakers_pctg, labels_dump_path,
     train_speakers_pctg = train_speakers_num * 100 / total_speakers_num
     valid_speakers_pctg = valid_speakers_num * 100 / total_speakers_num
     
-    
     train_files_num = len(list(itertools.chain.from_iterable([value["files_paths"] for value in train_speakers_dict.values()])))
     valid_files_num = len(list(itertools.chain.from_iterable([value["files_paths"] for value in valid_speakers_dict.values()])))
     total_files_num = train_files_num + valid_files_num
@@ -100,7 +107,7 @@ def train_valid_split_dict(speakers_dict, train_speakers_pctg, labels_dump_path,
     
     
     print(f"{train_speakers_num} speakers ({train_speakers_pctg:.1f}%) with a total of {train_files_num} files ({train_files_pctg:.1f}%) in training split.")
-    print(f"{valid_speakers_num} speakers ({valid_speakers_pctg:.1f}%) with a total of {valid_files_num} files ({valid_files_pctg:.1f}%) in training split.")
+    print(f"{valid_speakers_num} speakers ({valid_speakers_pctg:.1f}%) with a total of {valid_files_num} files ({valid_files_pctg:.1f}%) in validation split.")
     
     return train_speakers_dict, valid_speakers_dict
 
@@ -181,8 +188,7 @@ print(f"Spliting data into train and valid...")
 train_speakers_dict, valid_speakers_dict = train_valid_split_dict(
     speakers_dict = dev_speakers_dict, 
     train_speakers_pctg = train_speakers_pctg, 
-    labels_dump_path = None, 
-    impostors_dump_path = None,
+    random_split = random_split,
 )
 print(f"Data splited.")
 
@@ -198,7 +204,7 @@ generate_clients_impostors_files(
     impostors_dump_path = impostors_dump_path, 
     clients_dump_path = clients_dump_path, 
     speakers_dict = valid_speakers_dict, 
-    clients_lines_max = None, 
-    impostors_lines_max = None,
+    clients_lines_max = clients_lines_max, 
+    impostors_lines_max = impostors_lines_max,
 )
 print(f"Valid clients and impostors trials generated.")
