@@ -210,9 +210,11 @@ class Trainer:
 
         print('Start Training')
         for self.epoch in range(self.starting_epoch, self.params.max_epochs):  # loop over the dataset multiple times
+            print(f"Epoch {self.epoch}")
             self.net.train()
             self.__initialize_batch_variables()
             for input, label in self.training_generator:
+                print(f"Batch {self.train_batch}")
                 input, label = input.float().to(self.device), label.long().to(self.device)
                 input = self.__randomSlice(input) if self.params.randomSlicing else input 
                 prediction, AMPrediction  = self.net(input, label=label, step=self.step)
@@ -252,12 +254,12 @@ if __name__=="__main__":
 
     parser = argparse.ArgumentParser(description='Train a VGG based Speaker Embedding Extractor')
    
-    parser.add_argument('--train_data_dir', type=str, default='/scratch/speaker_databases/', help='data directory.')
-    parser.add_argument('--valid_data_dir', type=str, default='/scratch/speaker_databases/VoxCeleb-1/wav', help='data directory.')
-    parser.add_argument('--train_labels_path', type = str, default = 'labels/Vox2.ndx')
+    parser.add_argument('--train_data_dir', type=str, default='/home/usuaris/scratch/speaker_databases/', help='data directory.')
+    parser.add_argument('--valid_data_dir', type=str, default='/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', help='data directory.')
+    parser.add_argument('--train_labels_path', type = str, default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/Vox2.ndx')
     parser.add_argument('--data_mode', type = str, default = 'normal', choices=['normal','window'])
-    parser.add_argument('--valid_clients', type = str, default='labels/clients.ndx')
-    parser.add_argument('--valid_impostors', type = str, default='labels/impostors.ndx')
+    parser.add_argument('--valid_clients', type = str, default='/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/clients.ndx')
+    parser.add_argument('--valid_impostors', type = str, default='/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/impostors.ndx')
     parser.add_argument('--out_dir', type=str, default='./models/model1', help='directory where data is saved')
     parser.add_argument('--model_name', type=str, default='CNN', help='Model associated to the model builded')
     parser.add_argument('--front_end', type=str, default='VGG4L', choices = ['VGG3L','VGG4L'], help='Kind of Front-end Used')
