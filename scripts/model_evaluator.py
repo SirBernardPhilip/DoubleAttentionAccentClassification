@@ -3,10 +3,14 @@ import pickle
 import torch
 import numpy as np
 import random
+import os
+import json
+import time
+import datetime
 
 from model import SpeakerClassifier
 from data import normalizeFeatures, featureReader
-from utils import scoreCosineDistance, Score
+from utils import scoreCosineDistance, Score, getModelName
 
 
 class ModelEvaluator:
@@ -17,6 +21,8 @@ class ModelEvaluator:
         self.set_device()
         self.set_random_seed()
         self.evaluation_results = {}
+        self.start_time = time.time()
+        self.start_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
 
     
     def set_device(self):
@@ -202,14 +208,41 @@ class ModelEvaluator:
         self.evaluate_test()
 
 
+    def save_report(self):
+
+        print("Creating report...")
+
+        self.end_time = time.time()
+        self.end_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
+        self.elapsed_time_hours = (self.end_time - self.start_time) / 60 / 60
+        model_name = getModelName(self.params)
+
+        self.evaluation_results['start_datetime'] = self.start_datetime
+        self.evaluation_results['end_datetime'] = self.end_datetime
+        self.evaluation_results['elapsed_time_hours'] = self.elapsed_time_hours
+        self.evaluation_results['model_name'] = model_name
+
+        dump_folder = self.input_params.dump_folder
+        if not os.path.exists(dump_folder):
+            os.makedirs(dump_folder)
+
+        dump_file_name = f"report_{model_name}.json"
+
+        dump_path = os.path.join(dump_folder, dump_file_name)
+        
+        print(f"Saving file into {dump_path}")
+        with open(dump_path, 'w', encoding = 'utf-8') as handle:
+            json.dump(self.evaluation_results, handle, ensure_ascii = False, indent = 4)
+        print("Saved.")
+
+
     def main(self):
         self.load_checkpoint()
         self.load_checkpoint_params()
         self.load_network()
         self.evaluate_valid_and_test()
-        print(self.evaluation_results)
-
-
+        self.save_report()
+        
 
 if __name__ == "__main__":
     
@@ -220,6 +253,12 @@ if __name__ == "__main__":
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_128batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_500.chkpt'
         ) 
+
+    parser.add_argument(
+        '--dump_folder', 
+        type = str, 
+        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/models_results'
+        )
 
     parser.add_argument(
         '--valid_clients', 

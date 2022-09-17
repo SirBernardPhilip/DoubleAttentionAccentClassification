@@ -14,7 +14,6 @@ def Score(SC, th, rate):
 
     return round(score_count*100/float(len(SC)),4)
 
-
 def scoreCosineDistance(emb1, emb2):
 
     dist = F.cosine_similarity(emb1,emb2, dim=-1, eps=1e-08)
