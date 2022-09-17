@@ -1,6 +1,7 @@
 import argparse
 import pickle
 import torch
+import torch.nn as nn
 import numpy as np
 import random
 import os
@@ -87,7 +88,7 @@ class ModelEvaluator:
         self.net.to(self.device)
 
         if torch.cuda.device_count() > 1:
-            logger.info(f"Let's use {torch.cuda.device_count()} GPUs!")
+            print(f"Let's use {torch.cuda.device_count()} GPUs!")
             self.net = nn.DataParallel(self.net)
 
 
@@ -113,7 +114,10 @@ class ModelEvaluator:
     def __extract_scores(self, trials, data_dir):
 
         scores = []
-        for line in trials:
+        for num_line, line in enumerate(trials):
+
+            print(f"\r Extracting score {num_line}...", end='', flush = True)
+
             sline = line[:-1].split()
 
             input1, input2 = self.__extractInputFromFeature(sline, data_dir)
@@ -126,10 +130,14 @@ class ModelEvaluator:
             dist = scoreCosineDistance(emb1, emb2)
             scores.append(dist.item())
         
+        print(f"Scores extracted.")
+        
         return scores
 
 
     def __calculate_EER(self, CL, IM):
+
+        print("Calculating EER...")
 
         thresholds = np.arange(-1,1,0.01)
         FRR, FAR = np.zeros(len(thresholds)), np.zeros(len(thresholds))
@@ -144,6 +152,8 @@ class ModelEvaluator:
             EER = round((FAR[int(EER_Idx)] + FRR[int(EER_Idx)])/2,4)
         else:
             EER = 50.00
+
+        print("EER calculated.")
 
         return EER
 
@@ -162,6 +172,7 @@ class ModelEvaluator:
 
             # EER Validation
             with open(clients_labels,'r') as clients_in, open(impostor_labels,'r') as impostors_in:
+
                 # score clients
                 CL = self.__extract_scores(clients_in, data_dir)
                 IM = self.__extract_scores(impostors_in, data_dir)
@@ -175,6 +186,12 @@ class ModelEvaluator:
     def evaluate_validation(self):
 
         print("Evaluating model on validation dataset...")
+
+        self.validation_clients_num = sum(1 for line in open(self.input_params.valid_clients))
+        self.validation_impostors_num = sum(1 for line in open(self.input_params.valid_impostors))
+
+        print(f"{self.validation_clients_num} validation clients to evaluate.")
+        print(f"{self.validation_impostors_num} validation impostors to evaluate.")
         
         result = self.evaluate(
             clients_labels = self.input_params.valid_clients,
@@ -190,6 +207,12 @@ class ModelEvaluator:
     def evaluate_test(self):
 
         print("Evaluating model on test dataset...")
+
+        self.test_clients_num = sum(1 for line in open(self.input_params.test_clients))
+        self.test_impostors_num = sum(1 for line in open(self.input_params.test_impostors))
+
+        print(f"{self.test_clients_num} test clients to evaluate.")
+        print(f"{self.test_impostors_num} test impostors to evaluate.")
         
         result = self.evaluate(
             clients_labels = self.input_params.test_clients,
@@ -251,7 +274,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model_checkpoint_path', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_128batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_500.chkpt'
+        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_256batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_10000.chkpt'
         ) 
 
     parser.add_argument(
