@@ -283,14 +283,14 @@ if __name__=="__main__":
     parser.add_argument('--optimizer', type=str, choices=['Adam', 'SGD', 'RMSprop'], default='Adam')
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='')
     parser.add_argument('--weight_decay', type=float, default=0.001, help='')
-    parser.add_argument('--batch_size', type=int, default=64, help='number of sequences to train on in parallel')
+    parser.add_argument('--batch_size', type=int, default=128, help='number of sequences to train on in parallel')
     parser.add_argument('--gradientAccumulation', type=int, default=2)
-    parser.add_argument('--max_epochs', type=int, default=1000000, help='number of full passes through the trainning data')
+    parser.add_argument('--max_epochs', type=int, default=100, help='number of full passes through the trainning data')
     parser.add_argument('--early_stopping', type=int, default=25, help='-1 if not early stopping')
     parser.add_argument('--print_every', type = int, default = 1000)
     parser.add_argument('--requeue',action='store_true', help='restart from the last model for requeue on slurm')
     parser.add_argument('--validate_every', type = int, default = 10000)
-    parser.add_argument('--num_workers', type = int, default = 2)
+    parser.add_argument('--num_workers', type = int, default = 1)
     
     # parse input params
     params=parser.parse_args()
