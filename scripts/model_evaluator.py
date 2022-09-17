@@ -56,8 +56,8 @@ class ModelEvaluator:
         self.checkpoint = torch.load(checkpoint_path, map_location = self.device)
 
         print(f"Checkpoint loaded.")
-
-
+        
+    
     def load_checkpoint_params(self):
 
         self.params = self.checkpoint['settings']
@@ -113,9 +113,9 @@ class ModelEvaluator:
             input1, input2 = self.__extractInputFromFeature(sline, data_dir)
 
             if torch.cuda.device_count() > 1:
-                emb1, emb2 = self.net.module.get_embedding(input1), self.net.module.get_embedding(input2)
+                emb1, emb2 = self.net.module.getEmbedding(input1), self.net.module.getEmbedding(input2)
             else:
-                emb1, emb2 = self.net.get_embedding(input1), self.net.get_embedding(input2)
+                emb1, emb2 = self.net.getEmbedding(input1), self.net.getEmbedding(input2)
 
             dist = scoreCosineDistance(emb1, emb2)
             scores.append(dist.item())
@@ -149,6 +149,11 @@ class ModelEvaluator:
             # Switch torch to evaluation mode
             self.net.eval()
 
+            print("Going to evaluate using these labels:")
+            print(f"Clients: {clients_labels}")
+            print(f"Impostors: {impostor_labels}")
+            print(f"For each row in these labels where are using prefix {data_dir}")
+
             # EER Validation
             with open(clients_labels,'r') as clients_in, open(impostor_labels,'r') as impostors_in:
                 # score clients
@@ -162,25 +167,33 @@ class ModelEvaluator:
 
     
     def evaluate_validation(self):
+
+        print("Evaluating model on validation dataset...")
         
-        result = evaluate(
-            clients_labels = self.input_params.test_clients,
-            impostor_labels = self.test_impostors, 
-            data_dir = self.test_data_dir,
+        result = self.evaluate(
+            clients_labels = self.input_params.valid_clients,
+            impostor_labels = self.input_params.valid_impostors, 
+            data_dir = self.input_params.valid_data_dir,
             )
 
         self.evaluation_results['valid_result'] = result
+
+        print(f"Model evaluated on validation dataset. EER: {result:.2f}")
 
 
     def evaluate_test(self):
+
+        print("Evaluating model on test dataset...")
         
-        result = evaluate(
-            clients_labels = self.input_params.valid_clients,
-            impostor_labels = self.valid_impostors, 
-            data_dir = self.valid_data_dir,
+        result = self.evaluate(
+            clients_labels = self.input_params.test_clients,
+            impostor_labels = self.input_params.test_impostors, 
+            data_dir = self.input_params.test_data_dir,
             )
 
-        self.evaluation_results['valid_result'] = result
+        self.evaluation_results['test_result'] = result
+
+        print(f"Model evaluated on test dataset. EER: {result:.2f}")
 
 
     def evaluate_valid_and_test(self):
@@ -208,40 +221,40 @@ if __name__ == "__main__":
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_128batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_500.chkpt'
         ) 
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--valid_clients', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/valid/clients.ndx',
         help = 'Path of the file containing the validation clients pairs paths.',
         )
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--valid_impostors', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/valid/impostors.ndx',
         help = 'Path of the file containing the validation impostors pairs paths.',
         )
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--valid_data_dir', 
         type = str, 
         default = '/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', 
         help = 'Optional additional directory to prepend to valid_clients and valid_impostors paths.',
         )
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--test_clients', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/clients.ndx',
         )
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--test_impostors', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/impostors.ndx',
         )
 
-    self.parser.add_argument(
+    parser.add_argument(
         '--test_data_dir', 
         type = str, 
         default = '/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', 
