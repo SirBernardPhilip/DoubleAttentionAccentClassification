@@ -111,12 +111,12 @@ class ModelEvaluator:
         return input1.unsqueeze(0), input2.unsqueeze(0)
 
 
-    def __extract_scores(self, trials, data_dir):
+    def __extract_scores(self, trials, data_dir, total_trials):
 
         scores = []
         for num_line, line in enumerate(trials):
 
-            print(f"\r Extracting score {num_line}...", end='', flush = True)
+            print(f"\r Extracting score {num_line} of {total_trials - 1}...", end='', flush = True)
 
             sline = line[:-1].split()
 
@@ -160,6 +160,8 @@ class ModelEvaluator:
 
     def evaluate(self, clients_labels, impostor_labels, data_dir):
 
+        print("Evaluating model...")
+
         with torch.no_grad():
 
             # Switch torch to evaluation mode
@@ -170,65 +172,22 @@ class ModelEvaluator:
             print(f"Impostors: {impostor_labels}")
             print(f"For each row in these labels where are using prefix {data_dir}")
 
+            self.clients_num = sum(1 for line in open(clients_labels))
+            self.impostors_num = sum(1 for line in open(impostor_labels))
+
+            print(f"{self.clients_num} test clients to evaluate.")
+            print(f"{self.impostors_num} test impostors to evaluate.")
+
             # EER Validation
             with open(clients_labels,'r') as clients_in, open(impostor_labels,'r') as impostors_in:
 
                 # score clients
-                CL = self.__extract_scores(clients_in, data_dir)
-                IM = self.__extract_scores(impostors_in, data_dir)
+                CL = self.__extract_scores(clients_in, data_dir, self.clients_num)
+                IM = self.__extract_scores(impostors_in, data_dir, self.impostors_num)
             
             # Compute EER
-            EER = self.__calculate_EER(CL, IM)
-
-        return EER
-
-    
-    def evaluate_validation(self):
-
-        print("Evaluating model on validation dataset...")
-
-        self.validation_clients_num = sum(1 for line in open(self.input_params.valid_clients))
-        self.validation_impostors_num = sum(1 for line in open(self.input_params.valid_impostors))
-
-        print(f"{self.validation_clients_num} validation clients to evaluate.")
-        print(f"{self.validation_impostors_num} validation impostors to evaluate.")
-        
-        result = self.evaluate(
-            clients_labels = self.input_params.valid_clients,
-            impostor_labels = self.input_params.valid_impostors, 
-            data_dir = self.input_params.valid_data_dir,
-            )
-
-        self.evaluation_results['valid_result'] = result
-
-        print(f"Model evaluated on validation dataset. EER: {result:.2f}")
-
-
-    def evaluate_test(self):
-
-        print("Evaluating model on test dataset...")
-
-        self.test_clients_num = sum(1 for line in open(self.input_params.test_clients))
-        self.test_impostors_num = sum(1 for line in open(self.input_params.test_impostors))
-
-        print(f"{self.test_clients_num} test clients to evaluate.")
-        print(f"{self.test_impostors_num} test impostors to evaluate.")
-        
-        result = self.evaluate(
-            clients_labels = self.input_params.test_clients,
-            impostor_labels = self.input_params.test_impostors, 
-            data_dir = self.input_params.test_data_dir,
-            )
-
-        self.evaluation_results['test_result'] = result
-
-        print(f"Model evaluated on test dataset. EER: {result:.2f}")
-
-
-    def evaluate_valid_and_test(self):
-
-        self.evaluate_validation()
-        self.evaluate_test()
+            self.EER = self.__calculate_EER(CL, IM)
+            print(f"Model evaluated on test dataset. EER: {self.EER:.2f}")
 
 
     def save_report(self):
@@ -244,7 +203,11 @@ class ModelEvaluator:
         self.evaluation_results['end_datetime'] = self.end_datetime
         self.evaluation_results['elapsed_time_hours'] = self.elapsed_time_hours
         self.evaluation_results['model_name'] = model_name
+        self.evaluation_results['model_loaded_from'] = self.input_params.model_checkpoint_path
+        self.evaluation_results['clients_num'] = self.clients_num
+        self.evaluation_results['impostors_num'] = self.impostors_num
 
+        
         dump_folder = self.input_params.dump_folder
         if not os.path.exists(dump_folder):
             os.makedirs(dump_folder)
@@ -263,7 +226,11 @@ class ModelEvaluator:
         self.load_checkpoint()
         self.load_checkpoint_params()
         self.load_network()
-        self.evaluate_valid_and_test()
+        self.evaluate(
+            clients_labels = self.input_params.clients,
+            impostor_labels = self.input_params.impostors, 
+            data_dir = self.input_params.data_dir,
+            )
         self.save_report()
         
 
@@ -284,42 +251,24 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-        '--valid_clients', 
-        type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/valid/clients.ndx',
-        help = 'Path of the file containing the validation clients pairs paths.',
-        )
-
-    parser.add_argument(
-        '--valid_impostors', 
-        type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/valid/impostors.ndx',
-        help = 'Path of the file containing the validation impostors pairs paths.',
-        )
-
-    parser.add_argument(
-        '--valid_data_dir', 
-        type = str, 
-        default = '/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', 
-        help = 'Optional additional directory to prepend to valid_clients and valid_impostors paths.',
-        )
-
-    parser.add_argument(
-        '--test_clients', 
+        '--clients', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/clients.ndx',
+        help = 'Path of the file containing the clients pairs paths.',
         )
 
     parser.add_argument(
-        '--test_impostors', 
+        '--impostors', 
         type = str, 
         default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/impostors.ndx',
+        help = 'Path of the file containing the impostors pairs paths.',
         )
 
     parser.add_argument(
-        '--test_data_dir', 
+        '--data_dir', 
         type = str, 
         default = '/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', 
+        help = 'Optional additional directory to prepend to clients and impostors paths.',
         )
 
     input_params = parser.parse_args()
