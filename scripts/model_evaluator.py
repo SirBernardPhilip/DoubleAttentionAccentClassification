@@ -236,7 +236,9 @@ class ModelEvaluator:
 
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser(description='score a trained model')
+    parser = argparse.ArgumentParser(
+        description = 'Evaluate a trained model',
+        )
 
     parser.add_argument(
         '--model_checkpoint_path', 
