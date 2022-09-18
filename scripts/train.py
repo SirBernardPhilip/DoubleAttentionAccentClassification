@@ -214,7 +214,7 @@ class Trainer:
             self.net.train()
             self.__initialize_batch_variables()
             for input, label in self.training_generator:
-                print(f"Batch {self.train_batch}")
+                print(f"Batch {self.train_batch}, epoch {self.epoch}...")
                 input, label = input.float().to(self.device), label.long().to(self.device)
                 input = self.__randomSlice(input) if self.params.randomSlicing else input 
                 prediction, AMPrediction  = self.net(input, label=label, step=self.step)
