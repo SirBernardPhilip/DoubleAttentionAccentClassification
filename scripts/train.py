@@ -214,7 +214,7 @@ class Trainer:
             self.net.train()
             self.__initialize_batch_variables()
             for input, label in self.training_generator:
-                print(f"Batch {self.train_batch}, epoch {self.epoch}...")
+                
                 input, label = input.float().to(self.device), label.long().to(self.device)
                 input = self.__randomSlice(input) if self.params.randomSlicing else input 
                 prediction, AMPrediction  = self.net(input, label=label, step=self.step)
@@ -226,6 +226,8 @@ class Trainer:
                 self.train_batch += 1
                 if self.train_batch % self.params.gradientAccumulation == 0:
                     self.__update()
+
+                print(f"Batch {self.train_batch}, epoch {self.epoch}, Loss {self.train_loss}, Best EER {self.best_EER}...")
 
             if self.stopping > self.params.early_stopping:
                 print('--Best Model EER%%: %.2f' %(self.best_EER))
