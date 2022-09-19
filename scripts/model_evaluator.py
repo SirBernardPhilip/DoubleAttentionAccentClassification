@@ -62,6 +62,8 @@ class ModelEvaluator:
 
         self.checkpoint = torch.load(checkpoint_path, map_location = self.device)
 
+        print(f"Model was save at epoch {self.checkpoint['epoch']} and step {self.checkpoint['step']}")
+
         print(f"Checkpoint loaded.")
         
     
