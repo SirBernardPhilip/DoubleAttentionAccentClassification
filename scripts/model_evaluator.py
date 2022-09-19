@@ -243,7 +243,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model_checkpoint_path', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_256batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_10000.chkpt'
+        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_256batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_90000.chkpt'
         ) 
 
     parser.add_argument(

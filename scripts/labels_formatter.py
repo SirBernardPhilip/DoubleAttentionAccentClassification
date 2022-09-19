@@ -23,9 +23,19 @@ class LabelsFormatter:
         with open(self.original_labels_path,'r') as original_labels_file:
 
             for num_line, line in enumerate(original_labels_file):
-                # Every line has the format: label speaker_1 speaker_2
+
+                # Every line has the format: label speaker_1.extension speaker_2.extension\n
+                
+                # Remove '\n'
+                line = line.replace('\n', '')
+                
                 label, speaker_1_path, speaker_2_path = line.split(" ")
-                dump_line = f"speaker_1_path speaker_2_path"
+
+                # Remove the file extension
+                speaker_1_path = '.'.join(speaker_1_path.split(".")[:-1])
+                speaker_2_path = '.'.join(speaker_2_path.split(".")[:-1])
+
+                dump_line = f"{speaker_1_path} {speaker_2_path}"
 
                 if label == "0":
                     self.impostors.append(dump_line)
@@ -41,6 +51,9 @@ class LabelsFormatter:
         self.total_labels = sum(1 for line in open(self.original_labels_path))
         self.total_clients = len(self.clients)
         self.total_impostors = len(self.impostors)
+
+        print(f"Total labels: {self.total_labels}")
+        print(f"{self.total_clients} clients and {self.total_impostors} impostors.")
 
 
     def dump_formatted_labels(self, lines_to_dump, dump_labels_folder, dump_labels_file_name):
@@ -61,7 +74,7 @@ class LabelsFormatter:
     
     def dump_formatted_clients_labels(self):
 
-        print("Saving clients labels...")
+        print(f"Saving {self.total_clients} clients labels...")
         
         self.dump_formatted_labels(
             lines_to_dump = self.clients, 
@@ -74,7 +87,7 @@ class LabelsFormatter:
     
     def dump_formatted_impostors_labels(self):
 
-        print("Saving impostors labels...")
+        print(f"Saving {self.total_impostors} impostors labels...")
         
         self.dump_formatted_labels(
             lines_to_dump = self.impostors, 
@@ -102,20 +115,16 @@ if __name__ == "__main__":
     parser.add_argument(
         '--original_labels_folder', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/original_protocols'
         ) 
 
     parser.add_argument(
         '--original_labels_file_name', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/original_protocols/List of trial pairs - VoxCeleb1 (cleaned).txt'
         )
 
     parser.add_argument(
         '--dump_labels_folder', 
         type = str, 
-        default = '',
-        help = '',
         )
 
     parser.add_argument(
