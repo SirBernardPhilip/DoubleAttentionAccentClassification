@@ -62,7 +62,9 @@ class ModelEvaluator:
 
         self.checkpoint = torch.load(checkpoint_path, map_location = self.device)
 
-        print(f"Model was save at epoch {self.checkpoint['epoch']} and step {self.checkpoint['step']}")
+        self.saved_epoch = self.checkpoint['epoch']
+        self.saved_step = self.checkpoint['step']
+        print(f"Model was save at epoch {self.saved_epoch} and step {self.saved_step}")
 
         print(f"Checkpoint loaded.")
         
@@ -206,15 +208,20 @@ class ModelEvaluator:
         self.evaluation_results['elapsed_time_hours'] = self.elapsed_time_hours
         self.evaluation_results['model_name'] = model_name
         self.evaluation_results['model_loaded_from'] = self.input_params.model_checkpoint_path
+        self.evaluation_results['saved_epoch'] = self.saved_epoch
+        self.evaluation_results['saved_step'] = self.saved_step
+        self.evaluation_results['clients_file'] = self.input_params.clients
+        self.evaluation_results['impostors_file'] = self.input_params.impostors
+        self.evaluation_results['data_dir'] = self.input_params.data_dir
         self.evaluation_results['clients_num'] = self.clients_num
         self.evaluation_results['impostors_num'] = self.impostors_num
-
+        self.evaluation_results['EER'] = self.EER
         
         dump_folder = self.input_params.dump_folder
         if not os.path.exists(dump_folder):
             os.makedirs(dump_folder)
 
-        dump_file_name = f"report_{model_name}.json"
+        dump_file_name = f"report_{model_name}_epoch{self.saved_epoch}_step{self.saved_step}.json"
 
         dump_path = os.path.join(dump_folder, dump_file_name)
         
@@ -243,9 +250,8 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-        '--model_checkpoint_path', 
+        'model_checkpoint_path', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/models/model1/CNN_VGG4L_3.5_256batchSize_0.0001lr_0.001weightDecay_1024kernel_400embSize_30.0s_0.4m_DoubleMHA_32_90000.chkpt'
         ) 
 
     parser.add_argument(
@@ -255,23 +261,20 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-        '--clients', 
+        'clients', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/clients.ndx',
         help = 'Path of the file containing the clients pairs paths.',
         )
 
     parser.add_argument(
-        '--impostors', 
+        'impostors', 
         type = str, 
-        default = '/home/usuaris/veu/federico.costa/git_repositories/DoubleAttentionSpeakerVerification/scripts/labels/evaluation/test/impostors.ndx',
         help = 'Path of the file containing the impostors pairs paths.',
         )
 
     parser.add_argument(
         '--data_dir', 
         type = str, 
-        default = '/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav', 
         help = 'Optional additional directory to prepend to clients and impostors paths.',
         )
 

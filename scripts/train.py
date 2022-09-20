@@ -15,11 +15,32 @@ from data import *
 from model import SpeakerClassifier
 from loss import *
 from utils import *
+import datetime
+
+
+# Set logging config
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger_formatter = logging.Formatter(
+    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt = '%y-%m-%d %H:%M:%S',
+    )
+
+# Set a logging file handler
+if not os.path.exists('scripts/logs'):
+    os.makedirs('scripts/logs')
+logger_file_handler = logging.FileHandler(f"scripts/logs/train_{datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')}.log", mode = 'w')
+logger_file_handler.setLevel(logging.DEBUG)
+logger_file_handler.setFormatter(logger_formatter)
+logger.addHandler(logger_file_handler)
 
 class Trainer:
 
     def __init__(self, params, device):
 
+        self.start_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
         self.params = params
         self.device = device
         self.__load_network()
@@ -27,6 +48,7 @@ class Trainer:
         self.__load_optimizer()
         self.__load_criterion()
         self.__initialize_training_variables()
+        self.total_batches = len(self.training_generator)
 
     def __load_previous_states(self):
 
@@ -176,10 +198,12 @@ class Trainer:
                 self.best_EER = EER
                 self.stopping = 0
                 print('We found a better model!')
-                chkptsave(params, self.net, self.optimizer, self.epoch, self.step)
+                chkptsave(params, self.net, self.optimizer, self.epoch, self.step, self.start_datetime)
+                logger.info("Model validated and founded a better model!")
             else:
                 self.stopping += 1
                 print('Better Accuracy is: {}. {} epochs of no improvement'.format(self.best_EER, self.stopping))
+                logger.info("Model validated and didn't found a better model.")
             self.print_time = time.time()
             self.net.train()
 
@@ -209,12 +233,12 @@ class Trainer:
     def train(self):
 
         print('Start Training')
+        steps_counter = 0
         for self.epoch in range(self.starting_epoch, self.params.max_epochs):  # loop over the dataset multiple times
             print(f"Epoch {self.epoch}")
             self.net.train()
             self.__initialize_batch_variables()
             for input, label in self.training_generator:
-                
                 input, label = input.float().to(self.device), label.long().to(self.device)
                 input = self.__randomSlice(input) if self.params.randomSlicing else input 
                 prediction, AMPrediction  = self.net(input, label=label, step=self.step)
@@ -227,7 +251,9 @@ class Trainer:
                 if self.train_batch % self.params.gradientAccumulation == 0:
                     self.__update()
 
-                print(f"Batch {self.train_batch}, epoch {self.epoch}, Loss {self.train_loss}, Best EER {self.best_EER}...")
+                if steps_counter % 100 == 0:
+                    logger.info(f"Epoch {self.epoch} of {self.params.max_epochs}, batch {self.train_batch} of {self.total_batches}, step {self.step}, Loss {self.train_loss:.3f}, Best EER {self.best_EER:.3f}...")
+                steps_counter = steps_counter + 1
 
             if self.stopping > self.params.early_stopping:
                 print('--Best Model EER%%: %.2f' %(self.best_EER))
@@ -285,14 +311,14 @@ if __name__=="__main__":
     parser.add_argument('--optimizer', type=str, choices=['Adam', 'SGD', 'RMSprop'], default='Adam')
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='')
     parser.add_argument('--weight_decay', type=float, default=0.001, help='')
-    parser.add_argument('--batch_size', type=int, default=128, help='number of sequences to train on in parallel')
+    parser.add_argument('--batch_size', type=int, default=64, help='number of sequences to train on in parallel')
     parser.add_argument('--gradientAccumulation', type=int, default=2)
     parser.add_argument('--max_epochs', type=int, default=100, help='number of full passes through the trainning data')
     parser.add_argument('--early_stopping', type=int, default=25, help='-1 if not early stopping')
-    parser.add_argument('--print_every', type = int, default = 1000)
+    parser.add_argument('--print_every', type = int, default = 20000)
     parser.add_argument('--requeue',action='store_true', help='restart from the last model for requeue on slurm')
-    parser.add_argument('--validate_every', type = int, default = 10000)
-    parser.add_argument('--num_workers', type = int, default = 1)
+    parser.add_argument('--validate_every', type = int, default = 5000)
+    parser.add_argument('--num_workers', type = int, default = 2)
     
     # parse input params
     params=parser.parse_args()

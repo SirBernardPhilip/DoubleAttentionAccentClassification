@@ -1,5 +1,6 @@
 import torch
 from torch.nn import functional as F
+import datetime
 
 
 def Score(SC, th, rate):
@@ -19,7 +20,7 @@ def scoreCosineDistance(emb1, emb2):
     dist = F.cosine_similarity(emb1,emb2, dim=-1, eps=1e-08)
     return dist
 
-def chkptsave(opt,model,optimizer,epoch,step):
+def chkptsave(opt,model,optimizer,epoch,step, start_datetime):
     ''' function to save the model and optimizer parameters '''
     if torch.cuda.device_count() > 1:
         checkpoint = {
@@ -35,6 +36,10 @@ def chkptsave(opt,model,optimizer,epoch,step):
             'settings': opt,
             'epoch': epoch,
             'step':step}
+
+    end_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
+    checkpoint['start_datetime'] = start_datetime
+    checkpoint['end_datetime'] = end_datetime
 
     torch.save(checkpoint,'{}/{}_{}.chkpt'.format(opt.out_dir, opt.model_name,step))
 
