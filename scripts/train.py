@@ -251,7 +251,7 @@ class Trainer:
                 if self.train_batch % self.params.gradientAccumulation == 0:
                     self.__update()
 
-                if steps_counter % 100 == 0:
+                if steps_counter % 10 == 0:
                     logger.info(f"Epoch {self.epoch} of {self.params.max_epochs}, batch {self.train_batch} of {self.total_batches}, step {self.step}, Loss {self.train_loss:.3f}, Best EER {self.best_EER:.3f}...")
                 steps_counter = steps_counter + 1
 
