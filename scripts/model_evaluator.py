@@ -201,7 +201,7 @@ class ModelEvaluator:
         self.end_time = time.time()
         self.end_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
         self.elapsed_time_hours = (self.end_time - self.start_time) / 60 / 60
-        model_name = getModelName(self.params)
+        model_name = self.params.model_name
 
         self.evaluation_results['start_datetime'] = self.start_datetime
         self.evaluation_results['end_datetime'] = self.end_datetime
