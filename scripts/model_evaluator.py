@@ -221,7 +221,7 @@ class ModelEvaluator:
         if not os.path.exists(dump_folder):
             os.makedirs(dump_folder)
 
-        dump_file_name = f"{model_name}_epoch{self.saved_epoch}_step{self.saved_step}_report.json"
+        dump_file_name = f"{self.start_datetime}_report.json"
 
         dump_path = os.path.join(dump_folder, dump_file_name)
         
