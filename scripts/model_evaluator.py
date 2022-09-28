@@ -201,12 +201,11 @@ class ModelEvaluator:
         self.end_time = time.time()
         self.end_datetime = datetime.datetime.strftime(datetime.datetime.now(), '%y-%m-%d %H:%M:%S')
         self.elapsed_time_hours = (self.end_time - self.start_time) / 60 / 60
-        model_name = self.params.model_name
 
         self.evaluation_results['start_datetime'] = self.start_datetime
         self.evaluation_results['end_datetime'] = self.end_datetime
         self.evaluation_results['elapsed_time_hours'] = self.elapsed_time_hours
-        self.evaluation_results['model_name'] = model_name
+        self.evaluation_results['model_name'] = self.params.model_name
         self.evaluation_results['model_loaded_from'] = self.input_params.model_checkpoint_path
         self.evaluation_results['saved_epoch'] = self.saved_epoch
         self.evaluation_results['saved_step'] = self.saved_step
@@ -221,7 +220,7 @@ class ModelEvaluator:
         if not os.path.exists(dump_folder):
             os.makedirs(dump_folder)
 
-        dump_file_name = f"{self.start_datetime}_report.json"
+        dump_file_name = f"{self.params.model_name}_{self.saved_step}_{self.start_datetime}_report.json"
 
         dump_path = os.path.join(dump_folder, dump_file_name)
         
