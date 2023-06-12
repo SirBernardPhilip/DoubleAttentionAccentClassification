@@ -18,7 +18,7 @@ more details about its installation in [Soundfile](https://pysoundfile.readthedo
 
 ## Usage
 
-This repository shoud allow you to train a accent embedding extractor according to the setup described in the paper. This accent embedding extractor is based on a VGG-based classifier which identifies speaker identities given variable length audio utterances. The network used for this work uses log mel-spectogram features as input. Hence, we have added here the instructions to reproduce the feature extraction, the network training and the speaker embedding extraction step.
+This repository shoud allow you to train a accent embedding extractor according to the setup described in the paper. This accent embedding extractor is based on a VGG-based classifier which identifies speaker identities given variable length audio utterances. The network used for this work uses log mel-spectogram features as input. Hence, we have added here the instructions to reproduce the feature extraction, the network training and the accent embedding extraction step.
 
 ### Feature Extraction
 
