@@ -1,6 +1,6 @@
-# DoubleAttentionSpeakerVerification
+# DoubleAttentionAccentClassification
 
-Pytorch implemenation of the model proposed in the paper:
+Fork of the Pytorch implemenation of the model proposed in the paper:
 
 [Double Multi-Head Attention for Speaker Verification](https://arxiv.org/abs/2007.13199)
 
