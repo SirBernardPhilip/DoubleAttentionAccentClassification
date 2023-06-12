@@ -5,6 +5,8 @@ from poolings import *
 from CNNs import *
 from loss import *
 
+
+
 class SpeakerClassifier(nn.Module):
 
     def __init__(self, parameters, device):
@@ -15,7 +17,7 @@ class SpeakerClassifier(nn.Module):
         self.__initFrontEnd(parameters)        
         self.__initPoolingLayers(parameters)
         self.__initFullyConnectedBlock(parameters)
-        self.predictionLayer = AMSoftmax(parameters.embedding_size, parameters.num_spkrs, s=parameters.scalingFactor, m=parameters.marginFactor, annealing = parameters.annealing)
+        self.predictionLayer = AMSoftmax(parameters.embedding_size, parameters.num_accents, s=parameters.scalingFactor, m=parameters.marginFactor, annealing = parameters.annealing)
  
 
     def __initFrontEnd(self, parameters):
@@ -27,6 +29,10 @@ class SpeakerClassifier(nn.Module):
         if parameters.front_end=='VGG4L':
             self.vector_size = getVGG4LOutputDimension(parameters.feature_size, outputChannel=parameters.kernel_size)
             self.front_end = VGG4L(parameters.kernel_size)
+        
+        if parameters.front_end=="ResNet34":
+            self.vector_size = 512
+            self.front_end = resnet34()
 
     def __initPoolingLayers(self,parameters):    
 

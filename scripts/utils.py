@@ -1,6 +1,18 @@
+from sklearn.metrics import f1_score, confusion_matrix
 import torch
 from torch.nn import functional as F
+import seaborn as sn
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use('agg')
 
+classes_dict = {
+    5: ("central", "nord-occidental", "valencià", "balear", "septentrional"),
+    4: ("central+sept", "nord-occidental", "valencià", "balear"),
+    3: ("oriental", "nord-occidental", "valencià"),
+    2: ("oriental", "occidental"),
+}
 
 def Score(SC, th, rate):
     score_count = 0.0
@@ -37,7 +49,18 @@ def chkptsave(opt,model,optimizer,epoch,step):
             'epoch': epoch,
             'step':step}
 
-    torch.save(checkpoint,'{}/{}_{}.chkpt'.format(opt.out_dir, opt.model_name,step))
+    torch.save(checkpoint,'{}/{}_{}.chkpt'.format('./models/' + opt.out_dir, opt.model_name,step))
+
+def ConfusionMatrix(pred, labels, num_classes):
+    # constant for classes
+    classes = classes_dict[num_classes]
+    pred = torch.max(pred, 1)[1]
+    # Build confusion matrix
+    cf_matrix = confusion_matrix(labels.detach().cpu(), pred.detach().cpu(), normalize='true')
+    df_cm = pd.DataFrame(cf_matrix, index=[i for i in classes],
+                         columns=[i for i in classes])
+    matplotlib.pyplot.figure(figsize=(4, 4))    
+    return sn.heatmap(df_cm, annot=True).get_figure()
 
 def Accuracy(pred, labels):
 
@@ -50,13 +73,21 @@ def Accuracy(pred, labels):
 
     return acc/num_pred
 
-def getNumberOfSpeakers(labelsFilePath):
+def F1_macro(pred, labels):
+    pred = torch.max(pred, 1)[1]
+    return f1_score(labels.detach().cpu(), pred.detach().cpu(), average='macro')
 
-    speakersDict = dict()
+def F1_micro(pred, labels):
+    pred = torch.max(pred, 1)[1]
+    return f1_score(labels.detach().cpu(), pred.detach().cpu(), average='micro')
+
+def getNumberOfAccents(labelsFilePath):
+
+    accentsDict = dict()
     with open(labelsFilePath,'r') as labelsFile:
         for line in labelsFile.readlines():
-            speakersDict[line.split()[1]] = 0
-    return len(speakersDict)
+            accentsDict[line.split()[1]] = 0
+    return len(accentsDict)
 
 def getModelName(params):
 
