@@ -18,7 +18,7 @@ more details about its installation in [Soundfile](https://pysoundfile.readthedo
 
 ## Usage
 
-This repository shoud allow you to train a accent embedding extractor according to the setup described in the paper. This accent embedding extractor is based on a VGG-based classifier which identifies speaker identities given variable length audio utterances. The network used for this work uses log mel-spectogram features as input. Hence, we have added here the instructions to reproduce the feature extraction, the network training and the accent embedding extraction step.
+This repository shoud allow you to train a accent embedding extractor according to the setup described in the paper. This accent embedding extractor is based on a VGG-based classifier which identifies accents given variable length audio utterances. The network used for this work uses log mel-spectogram features as input. Hence, we have added here the instructions to reproduce the feature extraction, the network training and the accent embedding extraction step.
 
 ### Feature Extraction
 
@@ -40,27 +40,27 @@ This script will extract a feature for each audio file and it will store it in a
 
 ### Network Training
 
-Once you have extracted the features from all the audios wanted to be used, It is needed to prepare some path files for the training step. The proposed models are trained as speaker classifiers, hence a classification-based loss and an accuracy metric will be used to monitorize the training progress. Two different kind of path files will then be needed for the training/validation procedures:
+Once you have extracted the features from all the audios wanted to be used, It is needed to prepare some path files for the training step. The proposed models are trained as accent classifiers, hence a classification-based loss and an accuracy metric will be used to monitorize the training progress. Two different kind of path files will then be needed for the training/validation procedures:
 
 Train Labels File (`train_labels_path`):
 
-This file must have three columns separated by a blank space. The first column must contain the audio utterance paths, the second column must contain the speaker labels and the third one must be filled with -1. It is assumed that the labels correspond to the output network labels. Hence if you are working with a N accents database, the accent labels values should be in the 0 to N-1 range.
+This file must have three columns separated by a blank space. The first column must contain the audio utterance paths, the second column must contain the accent labels and the third one must be filled with -1. It is assumed that the labels correspond to the output network labels. Hence if you are working with a N accents database, the accent labels values should be in the 0 to N-1 range.
 
 File Example:
 
 <pre>
-audiosPath/speaker1/audio1 0 -1
-audiosPath/speaker1/audio2 0 -1
+audiosPath/audio1 0 -1
+audiosPath/audio2 0 -1
 ...
-audiosPath/speakerN/audio4 N-1 -1</pre>
+audiosPath/audio4 N-1 -1</pre>
 
-We have also added a `--train_data_dir` path argument. The dataloader will then look for the features in `--train_data_dir` + `audiosPath/speakeri/audioj` paths.
+We have also added a `--train_data_dir` path argument. The dataloader will then look for the features in `--train_data_dir` + `audiosPath/audioj` paths.
 
 Valid Labels File:
 
-It mus follow the same structure as the train file.
+It must follow the same structure as the train file.
 
-We have also added a `--train_data_dir` path argument. The dataloader will then look for the features in `--train_data_dir` + `audiosPath/speakeri/audioj` paths.
+We have also added a `--valid_data_dir` path argument. The dataloader will then look for the features in `--valid_data_dir` + `audiosPath/audioj` paths.
 
 Once you have all these data files ready, you can launch a model training with the following command:
 
